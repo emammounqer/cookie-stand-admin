@@ -1,22 +1,24 @@
 import Head from "next/head";
 import { Arima } from "next/font/google";
 import { useState } from "react";
+import Link from "next/link";
+
+import CreateForm from "@/components/CreateForm";
+import ReportTable from "@/components/ReportTable";
 
 const arima = Arima({ subsets: ["latin"] });
 
-export default function Home() {
-  const [lastCookie, setLastCookie] = useState();
+export default function CookieStandAdmin() {
+  const [cookieStands, setCookieStands] = useState([]);
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-    console.log(e.target);
-    const cookie = {
-      location: e.target.location.value,
-      minCustomerPerHour: e.target["min-customer-per-hour"].value,
-      maxCustomerPerHour: e.target["max-customer-per-hour"].value,
-      avgCookiePerSale: e.target["avg-cookie-per-sale"].value,
-    };
-    setLastCookie(cookie);
+  const addCookieStand = (cookieStand) => {
+    setCookieStands((cookieStands) => [...cookieStands, cookieStand]);
+  };
+
+  const deleteCookieStand = (index) => {
+    setCookieStands((cookieStands) =>
+      cookieStands.filter((_, i) => i !== index)
+    );
   };
 
   return (
@@ -24,81 +26,27 @@ export default function Home() {
       <Head>
         <title>Cookie Stand Admin</title>
       </Head>
-      <div
-        className={`flex flex-col justify-between min-h-screen ${arima.className}`}
-      >
-        <header className="p-4 text-4xl font-semibold text-black bg-green-500">
-          Cookie Stand Admin
+      <div className={`flex flex-col min-h-screen ${arima.className}`}>
+        <header className="flex items-center justify-between p-4 text-black align-middle bg-green-500">
+          <h1 className="text-4xl font-semibold">Cookie Stand Admin</h1>
+          <Link
+            href={"./overview"}
+            className="px-4 py-2 font-bold text-white bg-green-600 rounded hover:bg-green-800 "
+          >
+            overview
+          </Link>
         </header>
-        <main className="mx-1 mt-8 grow sm:mx-12 md:mx-24 lg:mx-64">
-          <Form onSubmit={onSubmit} />
-          <pre>{JSON.stringify(lastCookie, null, 2)}</pre>
-          <h2 className="p-5 text-lg font-semibold text-center text-gray-700">
-            Report table coming soon ...
-          </h2>
+        <main className="mx-1 mt-8 grow sm:mx-12 md:mx-24 lg:mx-36">
+          <CreateForm addCookieStand={addCookieStand} />
+          <ReportTable
+            cookieStands={cookieStands}
+            deleteCookieStand={deleteCookieStand}
+          />
         </main>
         <footer className="p-5 text-lg font-semibold text-gray-700 bg-green-500">
-          &copy; 2023
+          {cookieStands.length} Locations World Wide
         </footer>
       </div>
     </>
-  );
-}
-
-function Form({ onSubmit }) {
-  return (
-    <form className="p-4 bg-green-300 rounded-lg" onSubmit={onSubmit}>
-      <h2 className="pb-4 text-2xl font-semibold text-center ">
-        Create cookie Stand
-      </h2>
-      <div className="flex gap-3 mb-3">
-        <label htmlFor="location" className="font-semibold">
-          Location
-        </label>
-        <input
-          type="text"
-          id="location"
-          name="location"
-          required
-          className="w-full"
-        />
-      </div>
-      <div className="flex flex-col justify-between gap-3 text-center md:flex-row">
-        <div className="flex flex-col flex-1 md:justify-between">
-          <label htmlFor="min-customer-per-hour block">
-            Minimum Customer per Hour
-          </label>
-          <input
-            className="w-full"
-            type="number"
-            id="min-customer-per-hour"
-            name="min-customer-per-hour"
-          />
-        </div>
-        <div className="flex flex-col justify-between flex-1">
-          <label htmlFor="max-customer-per-hour">
-            Maximum Customer per Hour
-          </label>
-          <input
-            className="w-full"
-            type="number"
-            id="max-customer-per-hour"
-            name="max-customer-per-hour"
-          />
-        </div>
-        <div className="flex flex-col justify-between flex-1">
-          <label htmlFor="avg-cookie-per-sale">Average Cookie per Sale</label>
-          <input
-            className="w-full"
-            type="number"
-            id="avg-cookie-per-sale"
-            name="avg-cookie-per-sale"
-          />
-        </div>
-        <button type="submit" className="bg-green-500 grow">
-          Create
-        </button>
-      </div>
-    </form>
   );
 }
