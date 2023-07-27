@@ -1,42 +1,27 @@
 import Head from "next/head";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-
 import { Arima } from "next/font/google";
 
 import CreateForm from "@/components/CreateForm";
 import ReportTable from "@/components/ReportTable";
+import { getAllCookieStands } from "@/services/cookieStands";
+import { useAuth } from "@/context/authCtx";
 
 const arima = Arima({ subsets: ["latin"] });
 
 export default function CookieStandAdmin() {
   const [cookieStands, setCookieStands] = useState([]);
-  // const { tokens } = useAuth();
+  const { token } = useAuth();
 
   useEffect(() => {
+    if (!token) return;
     async function updateCookies() {
-      const data = await fetchCookies();
+      const data = await getAllCookieStands(token);
       setCookieStands(data);
     }
     updateCookies();
-  }, []);
-
-  async function fetchCookies() {
-    // const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-    const tokenUrl = "http://127.0.0.1:8000/api/v1/cookie_stands/";
-    const options = {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjkwNDA2NjkyLCJpYXQiOjE2OTA0MDMwOTIsImp0aSI6ImNhMDhhZDczZTJkNDQ4ZmZiY2I3YTU5MTNkYjQ2ZTIzIiwidXNlcl9pZCI6MiwiZW1haWwiOiIiLCJ1c2VybmFtZSI6ImVtYW0ifQ.kPB-TFzWRdZk8cdtJrWeajHKoBA32L1iefAgUZ9ZTAM"}`,
-      },
-    };
-    const response = await fetch(tokenUrl, options);
-    console.log(response);
-
-    const data = await response.json();
-    console.log(data);
-    return data;
-  }
+  }, [token]);
 
   const addCookieStand = (cookieStand) => {
     setCookieStands((cookieStands) => [...cookieStands, cookieStand]);

@@ -33,13 +33,15 @@ const ReportTable = ({ cookieStands, deleteCookieStand }) => {
               className={i % 2 == 0 ? "bg-green-400" : "bg-green-300"}
             >
               <td className={tdClass}>{stand.location}</td>
-              {stand.hourlySales.map((hour) => (
+              {hours.map((hour, i) => (
                 <td key={hour} className={tdClass}>
-                  {hour}
+                  {(stand.hourlySales && stand.hourlySales[i]) || "-"}
                 </td>
               ))}
               <td className={tdClass}>
-                {stand.hourlySales.reduce((prev, curr) => prev + curr, 0)}
+                {stand.hourlySales
+                  ? stand.hourlySales.reduce((prev, curr) => prev + curr, 0)
+                  : "-"}
               </td>
 
               <td className={tdClass + " text-center"}>

@@ -1,9 +1,6 @@
-import jwt from "jsonwebtoken";
+export async function loginPOST(username, password) {
+  const tokenUrl = process.env.NEXT_PUBLIC_API_URL + "api/token/";
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-const tokenUrl = baseUrl + "api/token/";
-
-export async function login(username, password) {
   const options = {
     method: "POST",
     body: JSON.stringify({ username, password }),
@@ -14,15 +11,9 @@ export async function login(username, password) {
   if (!response.ok) throw new Error(response.statusText);
 
   const data = await response.json();
-  const decodedAccess = jwt.decode(data.access);
 
   return {
     access: data.access,
     refresh: data.refresh,
-    user: {
-      username: decodedAccess.username,
-      email: decodedAccess.email,
-      id: decodedAccess.user_id,
-    },
   };
 }

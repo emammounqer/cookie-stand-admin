@@ -1,11 +1,26 @@
+import { useAuth } from "@/context/authCtx";
+
 const LoginForm = () => {
+  const { login, loading, error } = useAuth();
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const username = event.target.username.value;
+    const password = event.target.password.value;
+
+    login(username, password);
+  };
+
   return (
     <section className="h-screen">
-      <div className="flex flex-col px-8 pt-6 pb-8 mb-4 bg-white rounded shadow-md">
+      <form
+        className="flex flex-col px-8 pt-6 pb-8 mb-4 bg-white rounded shadow-md"
+        onSubmit={handleSubmit}
+      >
         <div className="mb-4">
           <label
             className="block mb-2 text-sm font-bold text-grey-darker"
-            for="username"
+            htmlFor="username"
           >
             Username
           </label>
@@ -19,7 +34,7 @@ const LoginForm = () => {
         <div className="mb-6">
           <label
             className="block mb-2 text-sm font-bold text-grey-darker"
-            for="password"
+            htmlFor="password"
           >
             Password
           </label>
@@ -32,13 +47,15 @@ const LoginForm = () => {
         </div>
         <div className="flex items-center justify-between">
           <button
-            className="px-4 py-2 font-bold text-white bg-green-500 rounded hover:bg-blue-dark"
-            type="button"
+            className="px-4 py-2 font-bold text-white bg-green-500 rounded hover:bg-blue-dark disabled:bg-green-200"
+            type="submit"
+            disabled={loading}
           >
             Sign In
           </button>
         </div>
-      </div>
+        {error && <p className="text-center text-red-500">{error}</p>}
+      </form>
     </section>
   );
 };
