@@ -6,31 +6,62 @@ import { Arima } from "next/font/google";
 import CreateForm from "@/components/CreateForm";
 import ReportTable from "@/components/ReportTable";
 import { getAllCookieStands } from "@/services/cookieStands";
-import { useAuth } from "@/context/authCtx";
+import { deleteCookieStand } from "@/services/cookieStands";
 
 const arima = Arima({ subsets: ["latin"] });
 
 export default function CookieStandAdmin() {
   const [cookieStands, setCookieStands] = useState([]);
-  const { token } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [deletingError, setDeletingError] = useState(null);
 
   useEffect(() => {
-    if (!token) return;
-    async function updateCookies() {
-      const data = await getAllCookieStands(token);
-      setCookieStands(data);
+    async function fetchCookies() {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getAllCookieStands();
+        setCookieStands(data);
+      } catch (error) {
+        setError(error.message);
+      }
+      setLoading(false);
     }
-    updateCookies();
-  }, [token]);
+    fetchCookies();
+  }, []);
 
   const addCookieStand = (cookieStand) => {
     setCookieStands((cookieStands) => [...cookieStands, cookieStand]);
   };
 
-  const deleteCookieStand = (index) => {
+  const handleDeleteCookieStand = async (standToDelete) => {
+    setDeletingError(null);
+    if (!standToDelete.id) {
+      setCookieStands((cookieStands) =>
+        cookieStands.filter((stand) => stand !== standToDelete)
+      );
+      return;
+    }
+    const prev = [...cookieStands];
     setCookieStands((cookieStands) =>
-      cookieStands.filter((_, i) => i !== index)
+      cookieStands.map((stand) => {
+        if (stand === standToDelete) {
+          return { ...stand, deleting: true };
+        }
+        return stand;
+      })
     );
+    try {
+      await deleteCookieStand(standToDelete.id);
+      setCookieStands((cookieStands) =>
+        cookieStands.filter((stand) => stand.id !== standToDelete.id)
+      );
+    } catch (error) {
+      console.error({ error });
+      setCookieStands(prev);
+      setDeletingError(error.message);
+    }
   };
 
   return (
@@ -49,11 +80,24 @@ export default function CookieStandAdmin() {
           </Link>
         </header>
         <main className="mx-1 mt-8 grow sm:mx-12 md:mx-24 lg:mx-36">
-          <CreateForm addCookieStand={addCookieStand} />
-          <ReportTable
-            cookieStands={cookieStands}
-            deleteCookieStand={deleteCookieStand}
+          <CreateForm
+            addCookieStand={addCookieStand}
+            deleteCookieStand={handleDeleteCookieStand}
           />
+          {error && <p className="text-red-500 text-center">{error}</p>}
+          {loading ? (
+            <p className="text-green-500 text-center">Loading...</p>
+          ) : (
+            <>
+              <ReportTable
+                cookieStands={cookieStands}
+                deleteCookieStand={handleDeleteCookieStand}
+              />
+              {deletingError && (
+                <p className="text-red-500 text-center">{deletingError}</p>
+              )}
+            </>
+          )}
         </main>
         <footer className="p-5 text-lg font-semibold text-gray-700 bg-green-500">
           {cookieStands.length} Locations World Wide

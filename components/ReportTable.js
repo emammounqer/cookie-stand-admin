@@ -14,7 +14,7 @@ const ReportTable = ({ cookieStands, deleteCookieStand }) => {
   var { hourlyTotals, totalAll } = calculateTotal(cookieStands);
 
   return (
-    <div className="relative mt-5 overflow-x-auto shadow-md sm:rounded-md">
+    <div className="relative my-5 overflow-x-auto shadow-md sm:rounded-md">
       <table className="min-w-full text-sm ">
         <thead className="leading-6 bg-green-700">
           <tr className="px-10">
@@ -30,17 +30,23 @@ const ReportTable = ({ cookieStands, deleteCookieStand }) => {
           {cookieStands.map((stand, i) => (
             <tr
               key={i}
-              className={i % 2 == 0 ? "bg-green-400" : "bg-green-300"}
+              className={
+                (i % 2 == 0 ? "bg-green-400" : "bg-green-300") +
+                " " +
+                (stand.loading ? "animate-pulse bg-green-100" : "") +
+                " " +
+                (stand.deleting ? "animate-pulse bg-red-100" : "")
+              }
             >
               <td className={tdClass}>{stand.location}</td>
               {hours.map((hour, i) => (
                 <td key={hour} className={tdClass}>
-                  {(stand.hourlySales && stand.hourlySales[i]) || "-"}
+                  {(stand.hourly_sales && stand.hourly_sales[i]) || "-"}
                 </td>
               ))}
               <td className={tdClass}>
-                {stand.hourlySales
-                  ? stand.hourlySales.reduce((prev, curr) => prev + curr, 0)
+                {stand.hourly_sales
+                  ? stand.hourly_sales.reduce((prev, curr) => prev + curr, 0)
                   : "-"}
               </td>
 
@@ -55,7 +61,7 @@ const ReportTable = ({ cookieStands, deleteCookieStand }) => {
                   strokeWidth={1.5}
                   stroke="red"
                   role="button"
-                  onClick={() => deleteCookieStand(i)}
+                  onClick={() => deleteCookieStand(stand)}
                 >
                   <path
                     strokeLinecap="round"

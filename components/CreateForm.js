@@ -1,15 +1,38 @@
-function CreateForm({ addCookieStand }) {
-  const onSubmit = (e) => {
+import { addCookieStand as addCookieStandService } from "@/services/cookieStands";
+import { useState } from "react";
+import { useUser } from "@/context/authCtx";
+
+function CreateForm({ addCookieStand, deleteCookieStand }) {
+  const user = useUser();
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const onSubmit = async (e) => {
     e.preventDefault();
-    const cookie = {
+    setLoading(true);
+    setError(null);
+
+    const newCookie = {
       location: e.target.location.value,
-      minCustomerPerHour: e.target["min-customer-per-hour"].value,
-      maxCustomerPerHour: e.target["max-customer-per-hour"].value,
-      avgCookiePerSale: e.target["avg-cookie-per-sale"].value,
-      hourlySales: [48, 42, 30, 24, 42, 24, 36, 42, 42, 48, 36, 42, 24, 36],
+      minimum_customers_per_hour: e.target["min-customer-per-hour"].value,
+      maximum_customers_per_hour: e.target["max-customer-per-hour"].value,
+      average_cookies_per_sale: e.target["avg-cookie-per-sale"].value,
+      hourly_sales: [48, 42, 30, 24, 42, 24, 36, 42, 42, 48, 36, 42, 24, 36],
+      owner: user.id,
+      loading: true,
     };
-    addCookieStand(cookie);
-    e.target.reset();
+
+    addCookieStand(newCookie);
+    try {
+      const createdCookie = await addCookieStandService(newCookie);
+      addCookieStand(createdCookie);
+      e.target.reset();
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      deleteCookieStand(newCookie);
+      setLoading(false);
+    }
   };
 
   return (
@@ -61,10 +84,15 @@ function CreateForm({ addCookieStand }) {
             name="avg-cookie-per-sale"
           />
         </div>
-        <button type="submit" className="bg-green-500 rounded-md grow">
+        <button
+          type="submit"
+          className="bg-green-500 rounded-md grow disabled:bg-green-200"
+          disabled={loading}
+        >
           Create
         </button>
       </div>
+      {error && <pre className="text-red-500">{error}</pre>}
     </form>
   );
 }
