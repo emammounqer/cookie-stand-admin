@@ -2,16 +2,11 @@ import { addCookieStand as addCookieStandService } from "@/services/cookieStands
 import { useState } from "react";
 import { useUser } from "@/context/authCtx";
 
-function CreateForm({ addCookieStand, deleteCookieStand }) {
+function CreateForm({ handleAddCookieStand, addStandStatus }) {
   const user = useUser();
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
     const newCookie = {
       location: e.target.location.value,
       minimum_customers_per_hour: e.target["min-customer-per-hour"].value,
@@ -22,17 +17,7 @@ function CreateForm({ addCookieStand, deleteCookieStand }) {
       loading: true,
     };
 
-    addCookieStand(newCookie);
-    try {
-      const createdCookie = await addCookieStandService(newCookie);
-      addCookieStand(createdCookie);
-      e.target.reset();
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      deleteCookieStand(newCookie);
-      setLoading(false);
-    }
+    handleAddCookieStand(newCookie);
   };
 
   return (
@@ -87,12 +72,14 @@ function CreateForm({ addCookieStand, deleteCookieStand }) {
         <button
           type="submit"
           className="bg-green-500 rounded-md grow disabled:bg-green-200"
-          disabled={loading}
+          disabled={addStandStatus.loading}
         >
           Create
         </button>
       </div>
-      {error && <pre className="text-red-500">{error}</pre>}
+      {addStandStatus.error && (
+        <pre className="text-red-500">{addStandStatus.error}</pre>
+      )}
     </form>
   );
 }
