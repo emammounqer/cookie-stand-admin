@@ -12,9 +12,9 @@ const LoginForm = () => {
   };
 
   return (
-    <section className="h-screen">
+    <section className="min-h-screen flex  items-center justify-center">
       <form
-        className="flex flex-col px-8 pt-6 pb-8 mb-4 bg-white rounded shadow-md"
+        className="flex flex-col px-8 pt-6 pb-8 mb-4 bg-white rounded w-full shadow-md sm:w-3/6"
         onSubmit={handleSubmit}
       >
         <div className="mb-4">
