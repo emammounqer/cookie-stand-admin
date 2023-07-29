@@ -1,0 +1,113 @@
+import Head from "next/head";
+import { useState, useEffect } from "react";
+import { Arima } from "next/font/google";
+
+import CreateForm from "@/components/CreateForm";
+import ReportTable from "@/components/ReportTable";
+import { getAllCookieStands } from "@/services/cookieStands";
+import { deleteCookieStand } from "@/services/cookieStands";
+import { addCookieStand as addCookieStandService } from "@/services/cookieStands";
+import { Header } from "./Header";
+
+const arima = Arima({ subsets: ["latin"] });
+
+export default function CookieStandAdmin() {
+  const [cookieStands, setCookieStands] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [addStandStatus, setAddStandStatus] = useState({
+    loading: false,
+    error: null,
+  });
+  const [deletingError, setDeletingError] = useState(null);
+
+  useEffect(() => {
+    async function fetchCookies() {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getAllCookieStands();
+        setCookieStands(data);
+      } catch (error) {
+        setError(error.message);
+      }
+      setLoading(false);
+    }
+    fetchCookies();
+  }, []);
+
+  const handleAddCookieStand = async (cookieStand) => {
+    setAddStandStatus({ loading: true, error: null });
+
+    setCookieStands((cookieStands) => [...cookieStands, cookieStand]);
+    try {
+      const createdCookie = await addCookieStandService(cookieStand);
+      setCookieStands((cookieStands) => [...cookieStands, createdCookie]);
+    } catch (error) {
+      setAddStandStatus({ loading: false, error: error.message });
+    } finally {
+      setCookieStands((cookieStands) =>
+        cookieStands.filter((stand) => stand !== cookieStand)
+      );
+      setAddStandStatus((prev) => ({ ...prev, loading: false }));
+    }
+  };
+
+  const handleDeleteCookieStand = async (standToDelete) => {
+    setDeletingError(null);
+    const prev = [...cookieStands];
+    setCookieStands((cookieStands) =>
+      cookieStands.map((stand) => {
+        if (stand === standToDelete) {
+          return { ...stand, deleting: true };
+        }
+        return stand;
+      })
+    );
+    try {
+      await deleteCookieStand(standToDelete.id);
+      setCookieStands((cookieStands) =>
+        cookieStands.filter((stand) => stand.id !== standToDelete.id)
+      );
+    } catch (error) {
+      console.error({ error });
+      setCookieStands(prev);
+      setDeletingError(error.message);
+    }
+  };
+
+  return (
+    <>
+      <Head>
+        <title>Cookie Stand Admin</title>
+      </Head>
+      <div className={`flex flex-col min-h-screen ${arima.className}`}>
+        <Header />
+        <main className="mx-1 mt-8 grow sm:mx-12 md:mx-24 lg:mx-36">
+          <CreateForm
+            handleAddCookieStand={handleAddCookieStand}
+            handleDeleteCookieStand={handleDeleteCookieStand}
+            addStandStatus={addStandStatus}
+          />
+          {error && <p className="text-red-500 text-center">{error}</p>}
+          {loading ? (
+            <p className="text-green-500 text-center">Loading...</p>
+          ) : (
+            <>
+              <ReportTable
+                cookieStands={cookieStands}
+                deleteCookieStand={handleDeleteCookieStand}
+              />
+              {deletingError && (
+                <p className="text-red-500 text-center">{deletingError}</p>
+              )}
+            </>
+          )}
+        </main>
+        <footer className="p-5 text-lg font-semibold text-gray-700 bg-green-500">
+          {cookieStands.length} Locations World Wide
+        </footer>
+      </div>
+    </>
+  );
+}
